@@ -1,12 +1,12 @@
 /**
- * 小刘的博客 - 高级交互效果
- * 包含：粒子背景、3D卡片倾斜、滚动动画、导航毛玻璃
+ * 小刘的博客 - 多巴胺液态玻璃交互
+ * 包含：粉色粒子、液态波纹、3D卡片、鼠标光晕、滚动动画
  */
 
 (function() {
   'use strict';
 
-  // ===== 粒子背景 =====
+  // ===== 粉色粒子背景 =====
   function initParticles() {
     const canvas = document.getElementById('particles-canvas');
     if (!canvas) return;
@@ -21,27 +21,46 @@
     resize();
     window.addEventListener('resize', resize);
 
+    // 粉色系粒子颜色
+    const colors = [
+      [255, 107, 157],  // 粉
+      [192, 132, 252],  // 紫
+      [103, 232, 249],  // 青
+      [251, 191, 36],   // 金
+      [255, 143, 183],  // 浅粉
+    ];
+
     class Particle {
-      constructor() {
-        this.reset();
-      }
+      constructor() { this.reset(); }
       reset() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.size = Math.random() * 2 + 1;
-        this.alpha = Math.random() * 0.3 + 0.1;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.size = Math.random() * 3 + 1;
+        this.alpha = Math.random() * 0.25 + 0.05;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.baseAlpha = this.alpha;
       }
       update() {
-        // 鼠标排斥
+        // 鼠标吸引 + 排斥混合效果
         const dx = this.x - mouseX;
         const dy = this.y - mouseY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 150) {
-          const force = (150 - dist) / 150;
-          this.vx += (dx / dist) * force * 0.5;
-          this.vy += (dy / dist) * force * 0.5;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 180) {
+          const force = (180 - dist) / 180;
+          // 近距离排斥，远距离轻微吸引
+          if (dist < 80) {
+            this.vx += (dx / dist) * force * 0.3;
+            this.vy += (dy / dist) * force * 0.3;
+          } else {
+            this.vx -= (dx / dist) * force * 0.05;
+            this.vy -= (dy / dist) * force * 0.05;
+          }
+          // 靠近鼠标时变亮
+          this.alpha = this.baseAlpha + force * 0.3;
+        } else {
+          this.alpha = this.baseAlpha;
         }
         this.x += this.vx;
         this.y += this.vy;
@@ -53,12 +72,17 @@
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 113, 227, ${this.alpha})`;
+        ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.alpha})`;
+        ctx.fill();
+        // 光晕
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.alpha * 0.2})`;
         ctx.fill();
       }
     }
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 70; i++) {
       particles.push(new Particle());
     }
 
@@ -69,17 +93,18 @@
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // 连线
+      // 连线（粉色）
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist < 120) {
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130) {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(0, 113, 227, ${0.08 * (1 - dist/120)})`;
+            const alpha = 0.06 * (1 - dist / 130);
+            ctx.strokeStyle = `rgba(255, 107, 157, ${alpha})`;
             ctx.lineWidth = 1;
             ctx.stroke();
           }
@@ -91,7 +116,7 @@
     animate();
   }
 
-  // ===== 3D 卡片倾斜效果 =====
+  // ===== 3D 卡片倾斜 + 折射光斑 =====
   function init3DCards() {
     const cards = document.querySelectorAll('.post-card, .sidebar-section');
     cards.forEach(card => {
@@ -101,16 +126,73 @@
         const y = e.clientY - rect.top;
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -4;
-        const rotateY = ((x - centerX) / centerX) * 4;
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
         card.style.transition = 'transform 0.1s ease';
+        // 更新折射光斑位置
+        const percentX = (x / rect.width) * 100;
+        const percentY = (y / rect.height) * 100;
+        card.style.setProperty('--mouse-x', percentX + '%');
+        card.style.setProperty('--mouse-y', percentY + '%');
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
         card.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
       });
     });
+  }
+
+  // ===== 卡片点击波纹 =====
+  function initCardRipple() {
+    const cards = document.querySelectorAll('.post-card');
+    cards.forEach(card => {
+      card.addEventListener('click', e => {
+        const rect = card.getBoundingClientRect();
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        card.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+    });
+  }
+
+  // ===== 全局鼠标点击波纹 =====
+  function initGlobalRipple() {
+    document.addEventListener('click', e => {
+      const ripple = document.createElement('div');
+      ripple.className = 'global-ripple';
+      const size = 200;
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - size / 2) + 'px';
+      ripple.style.top = (e.clientY - size / 2) + 'px';
+      document.body.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+  }
+
+  // ===== 鼠标跟随光晕 =====
+  function initCursorGlow() {
+    const glow = document.createElement('div');
+    glow.className = 'cursor-glow';
+    document.body.appendChild(glow);
+
+    let gx = 0, gy = 0;
+    document.addEventListener('mousemove', e => {
+      gx = e.clientX;
+      gy = e.clientY;
+    });
+
+    function updateGlow() {
+      glow.style.left = gx + 'px';
+      glow.style.top = gy + 'px';
+      requestAnimationFrame(updateGlow);
+    }
+    updateGlow();
   }
 
   // ===== 导航栏滚动效果 =====
@@ -180,6 +262,9 @@
   document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     init3DCards();
+    initCardRipple();
+    initGlobalRipple();
+    initCursorGlow();
     initNavScroll();
     initScrollReveal();
     initTypewriter();
