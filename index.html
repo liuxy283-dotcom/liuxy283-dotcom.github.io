@@ -3,44 +3,60 @@ layout: default
 ---
 
 <div class="hero">
-  <h1 class="hero-title">欢迎光临小刘的博客 👋</h1>
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Jekyll + GitHub Pages 个人博客
+  </div>
+  <h1 class="hero-title">欢迎光临小刘的博客</h1>
   <p class="hero-desc">记录课程学习、实验过程与技术探索，做一个持续成长的计算机专业学生。</p>
+  <div class="hero-actions">
+    <a href="{{ '/about/' | relative_url }}" class="btn-primary">了解更多</a>
+    <a href="https://github.com/{{ site.github_username }}" class="btn-secondary" target="_blank">GitHub ↗</a>
+  </div>
+  <div class="scroll-indicator">↓</div>
 </div>
 
-<div class="post-list">
-  {% for post in paginator.posts %}
-  <article class="post-card">
-    <h2 class="post-title">
-      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-    </h2>
-    <div class="post-meta">
-      <time datetime="{{ post.date | date_to_xmlschema }}">
-        📅 {{ post.date | date: "%Y年%m月%d日" }}
-      </time>
-      {% if post.categories.size > 0 %}
-      <span>
-        📂 {% for cat in post.categories %}
-        <span class="category">{{ cat }}</span>{% unless forloop.last %}, {% endunless %}
-        {% endfor %}
-      </span>
-      {% endif %}
-    </div>
-    <div class="post-excerpt">
-      {{ post.excerpt | strip_html | truncate: 150 }}
-    </div>
-    <a class="read-more" href="{{ post.url | relative_url }}">阅读全文 →</a>
-  </article>
-  {% endfor %}
-</div>
+<div class="container">
+  <div class="section-header">
+    <h2>最新文章</h2>
+    <p>分享学习笔记与实验心得</p>
+  </div>
 
-{% if paginator.total_pages > 1 %}
-<div class="pagination">
-  {% if paginator.previous_page %}
-  <a href="{{ paginator.previous_page_path | relative_url }}">← 上一页</a>
-  {% endif %}
-  <span>{{ paginator.page }} / {{ paginator.total_pages }}</span>
-  {% if paginator.next_page %}
-  <a href="{{ paginator.next_page_path | relative_url }}">下一页 →</a>
+  <div class="post-list">
+    {% for post in paginator.posts %}
+    <article class="post-card">
+      <h2 class="post-title">
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </h2>
+      <div class="post-meta">
+        <time datetime="{{ post.date | date_to_xmlschema }}">
+          📅 {{ post.date | date: "%Y年%m月%d日" }}
+        </time>
+        {% if post.categories.size > 0 %}
+        <span>
+          {% for cat in post.categories %}
+          <span class="category">{{ cat }}</span>{% unless forloop.last %}, {% endunless %}
+          {% endfor %}
+        </span>
+        {% endif %}
+      </div>
+      <div class="post-excerpt">
+        {{ post.excerpt | strip_html | truncate: 150 }}
+      </div>
+      <a class="read-more" href="{{ post.url | relative_url }}">阅读全文 →</a>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if paginator.total_pages > 1 %}
+  <div class="pagination">
+    {% if paginator.previous_page %}
+    <a href="{{ paginator.previous_page_path | relative_url }}">← 上一页</a>
+    {% endif %}
+    <span>{{ paginator.page }} / {{ paginator.total_pages }}</span>
+    {% if paginator.next_page %}
+    <a href="{{ paginator.next_page_path | relative_url }}">下一页 →</a>
+    {% endif %}
+  </div>
   {% endif %}
 </div>
-{% endif %}
