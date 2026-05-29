@@ -1,0 +1,41 @@
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">📂 分类</h3>
+    <ul class="category-list">
+      {% assign categories = site.categories | sort %}
+      {% for category in categories %}
+      <li>
+        <a href="{{ '/categories/' | append: category[0] | slugify | relative_url }}">
+          {{ category[0] }}
+          <span class="count">({{ category[1].size }})</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">🏷️ 标签</h3>
+    <div class="tag-cloud">
+      {% assign tags = site.tags | sort %}
+      {% for tag in tags %}
+      <span class="tag">{{ tag[0] }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <h3 class="sidebar-title">📅 归档</h3>
+    <ul class="archive-list">
+      {% assign posts_by_year = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+      {% for year in posts_by_year %}
+      <li>
+        <a href="{{ '/archive/' | relative_url }}">
+          {{ year.name }}年
+          <span class="count">({{ year.items.size }})</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</aside>

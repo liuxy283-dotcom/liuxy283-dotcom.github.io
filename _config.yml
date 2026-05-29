@@ -1,0 +1,53 @@
+# Jekyll 站点配置
+title: "小刘的博客"
+description: "记录学习过程、实验心得与技术探索"
+author: "小刘"
+email: ""
+url: "https://liuxy283-dotcom.github.io"
+baseurl: ""
+
+# 主题设置
+theme: minima
+
+# 社交媒体
+github_username: liuxy283-dotcom
+
+# 构建配置
+markdown: kramdown
+highlighter: rouge
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-paginate
+
+# 分页设置
+paginate: 5
+paginate_path: "/page:num/"
+
+# 默认布局
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+
+# 排除文件
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - README.md
